@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  googleId    String     @id
+  name        String
+  email       String
+  pic         String     @db.Text
+  hostedMeets Meet[]     @relation("HOSTED_MEETS")
+  message     Message[]
+  feedBack    FeedBack[]
+  meets       Meet[]     @relation("MEETS_HISTORY")
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userGoogleId], references: [googleId])
+  userGoogleId String
+  content      String
+  meet         Meet     @relation(fields: [meetId], references: [id])
+  meetId       String
+  createdAt    DateTime @default(now())
+}
+
+model Meet {
+  id                      String     @id
+  enableScreenSharing     Boolean    @default(true)
+  enableChat              Boolean    @default(true)
+  enableMicrophone        Boolean    @default(true)
+  enableVideo             Boolean    @default(true)
+  organizerAdministration Boolean    @default(true)
+  isActive                Boolean    @default(true)
+  createdAt               DateTime   @default(now())
+  duration                Int?
+  host                    User       @relation("HOSTED_MEETS", fields: [hostId], references: [googleId])
+  hostId                  String
+  participants            User[]     @relation("MEETS_HISTORY")
+  chat                    Message[]
+  feedBack                FeedBack[]
+}
+
+model FeedBack {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userGoogleId], references: [googleId])
+  userGoogleId String
+  meet         Meet     @relation(fields: [meetId], references: [id])
+  meetId       String
+  stars        Int
+  createdAt    DateTime @default(now())
+}
