@@ -92,7 +92,7 @@ async function main() {
 
   apolloServer.applyMiddleware({ app, path: "/api", cors: false });
 
-  const PORT = 4000 || process.env.PORT;
+  const PORT = process.env.PORT || 4000;
   httpServer.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
   });
