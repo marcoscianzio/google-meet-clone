@@ -7,7 +7,11 @@ import session from "express-session";
 import { buildSchema } from "type-graphql";
 import { Context, prisma } from "./context";
 import { createServer } from "http";
-import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
+import {
+  ApolloServerPluginDrainHttpServer,
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from "apollo-server-core";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { withGoogle } from "./strategies/google";
@@ -84,6 +88,13 @@ async function main() {
           };
         },
       },
+      process.env.NODE_ENV === "production"
+        ? ApolloServerPluginLandingPageProductionDefault({
+            graphRef: "google-meet-clone-fyzngp",
+            footer: false,
+            includeCookies: true,
+          })
+        : ApolloServerPluginLandingPageLocalDefault({ footer: false }),
     ],
     introspection: __prod__,
   });
