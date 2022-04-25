@@ -10,6 +10,7 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { withGoogle } from "./strategies/google";
+import { __prod__ } from "./constants";
 
 async function main() {
   const app = express();
@@ -19,7 +20,11 @@ async function main() {
   app.use(
     cors({
       credentials: true,
-      origin: ["http://localhost:3000", "https://studio.apollographql.com"],
+      origin: [
+        "http://localhost:3000",
+        "https://studio.apollographql.com",
+        "https://google-meet-backend.herokuapp.com/",
+      ],
     })
   );
 
@@ -30,9 +35,12 @@ async function main() {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
         sameSite: "none",
-        secure: true,
+        secure: __prod__,
+        domain: __prod__
+          ? "https://google-meet-backend.herokuapp.com/"
+          : undefined,
       },
-      secret: "dsjfsjfdfjgdjaskakd",
+      secret: process.env.COOKIE_SECRET,
       resave: false,
       saveUninitialized: false,
     })
@@ -67,6 +75,7 @@ async function main() {
         },
       },
     ],
+    introspection: __prod__,
   });
 
   await apolloServer.start();
