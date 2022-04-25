@@ -15,7 +15,7 @@ export class ChatMutations {
   async message(
     @Arg("meetId") meetId: string,
     @Arg("content") content: string,
-    @Ctx() { prisma }: Context,
+    @Ctx() { prisma, req }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Message | null> {
     const meet = await prisma.meet.findUnique({
@@ -38,7 +38,7 @@ export class ChatMutations {
       data: {
         user: {
           connect: {
-            googleId: "106744387007422278420", // change to cookie,
+            googleId: req.session.userId,
           },
         },
         content,

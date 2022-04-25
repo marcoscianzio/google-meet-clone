@@ -15,7 +15,7 @@ import { generateMeetId } from "../../utils/generateMeetId";
 @Resolver()
 export class MeetMutations {
   @Mutation(() => Meet)
-  async createMeet(@Ctx() { prisma }: Context): Promise<Meet> {
+  async createMeet(@Ctx() { prisma, req }: Context): Promise<Meet> {
     let meet = null;
     let error = true;
 
@@ -28,7 +28,7 @@ export class MeetMutations {
             id: meetId,
             host: {
               connect: {
-                googleId: "106744387007422278420", // change to cookie,
+                googleId: req.session.userId,
               },
             },
           },
@@ -46,7 +46,7 @@ export class MeetMutations {
   @Mutation(() => MeetHandledResponse)
   async joinMeet(
     @Arg("meetId") meetId: string,
-    @Ctx() { prisma }: Context,
+    @Ctx() { prisma, req }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<InstanceType<typeof MeetHandledResponse>> {
     const meet = await prisma.meet.findUnique({
@@ -83,12 +83,12 @@ export class MeetMutations {
     }
 
     const user = await prisma.user.findUnique({
-      where: { googleId: "106744387007422278420" }, // change to cookie,
+      where: { googleId: req.session.userId },
     });
 
     const { participants } = meet;
 
-    const isHost = this.isHost(meet.hostId);
+    const isHost = meet.hostId === req.session.userId;
 
     const isAlreadyParticipant = participants.some(
       (participant) => participant.googleId === "106744387007422278420"
@@ -100,7 +100,7 @@ export class MeetMutations {
         data: {
           participants: {
             connect: {
-              googleId: "106744387007422278420", // change to cookie,
+              googleId: req.session.userId,
             },
           },
         },
@@ -115,7 +115,7 @@ export class MeetMutations {
   @Mutation(() => Boolean)
   async leaveMeet(
     @Arg("meetId") meetId: string,
-    @Ctx() { prisma }: Context,
+    @Ctx() { prisma, req }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<Boolean> {
     const meet = await prisma.meet.findUnique({
@@ -139,13 +139,13 @@ export class MeetMutations {
     }
 
     const user = await prisma.user.findUnique({
-      where: { googleId: "106744387007422278420" }, // change to cookie,
+      where: { googleId: req.session.userId },
     });
 
     const wasParticipant =
       meet.participants.some(
         (participant) => participant.googleId === user?.googleId
-      ) || this.isHost(meet.hostId);
+      ) || meet.hostId === req.session.userId;
 
     if (!wasParticipant) {
       return false;
@@ -156,7 +156,7 @@ export class MeetMutations {
       data: {
         participants: {
           disconnect: {
-            googleId: "106744387007422278420", // change to cookie,
+            googleId: req.session.userId,
           },
         },
       },
@@ -170,7 +170,7 @@ export class MeetMutations {
   @Mutation(() => StringHandledResponse)
   async finishMeeting(
     @Arg("meetId") meetId: string,
-    @Ctx() { prisma }: Context,
+    @Ctx() { prisma, req }: Context,
     @PubSub() pubSub: PubSubEngine
   ): Promise<InstanceType<typeof StringHandledResponse>> {
     const meet = await prisma.meet.findUnique({
@@ -194,7 +194,7 @@ export class MeetMutations {
       };
     }
 
-    const isHost = this.isHost(meet.hostId);
+    const isHost = meet.hostId === req.session.userId;
 
     if (!isHost) {
       return {
@@ -228,9 +228,5 @@ export class MeetMutations {
     await pubSub.publish("FINISH_MEET", meet.id);
 
     return { success: "Meet finished for everyone" };
-  }
-
-  isHost(googleId: string): boolean {
-    return googleId === "106744387007422278420"; // change to cookie;
   }
 }
