@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/index.js",
     "watch": "tsc -w",
     "dev": "nodemon dist/index.js",
     "types": "npx gen-env-types .env -o src/env.d.ts -e ."
