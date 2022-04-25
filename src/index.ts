@@ -10,10 +10,15 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { withGoogle } from "./strategies/google";
+import connectRedis from "connect-redis";
 import { __prod__ } from "./constants";
+import Redis from "ioredis";
 
 async function main() {
   const app = express();
+
+  const redisClient = new Redis(process.env.REDIS_URL);
+  const RedisStore = connectRedis(session);
 
   const httpServer = createServer(app);
 
@@ -31,6 +36,10 @@ async function main() {
   app.use(
     session({
       name: "qid",
+      store: new RedisStore({
+        client: redisClient,
+        disableTouch: true,
+      }),
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,

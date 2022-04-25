@@ -5,6 +5,7 @@ declare global {
       CLIENT_ID: string;
       SECRET_KEY: string;
       COOKIE_SECRET: string;
+      REDIS_URL: string;
     }
   }
 }
