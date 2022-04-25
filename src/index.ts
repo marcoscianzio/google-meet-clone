@@ -1,5 +1,6 @@
-import { ApolloServer } from "apollo-server-express";
 import "reflect-metadata";
+require("dotenv").config();
+import { ApolloServer } from "apollo-server-express";
 import cors from "cors";
 import express from "express";
 import session from "express-session";
